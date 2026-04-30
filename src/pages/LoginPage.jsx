@@ -122,7 +122,12 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' })
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://kpekpe.netlify.app/accueil'
+      }
+    })
   }
 
   const containerStyle = {

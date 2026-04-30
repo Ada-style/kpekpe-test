@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { Monitor, Heart, Leaf, TrendingUp, Palette, Scale, HardHat, Radio, Eye, EyeOff, Mail } from 'lucide-react'
+import { Monitor, Heart, Leaf, TrendingUp, Palette, Scale, HardHat, Radio, Eye, EyeOff, Mail, Briefcase, Scissors, Cpu, Users, DollarSign } from 'lucide-react'
 
 // Constants
-const MATIERES = ['Maths', 'Français', 'Sciences', 'Histoire-Géo', 'Anglais', 'Physique-Chimie', 'SVT', 'Dessin', 'EPS']
+const MATIERES_COLLEGE = ['Mathématiques', 'Français', 'Anglais', 'Histoire-Géographie', 'Éducation Civique et Morale', 'SVT', 'Physique-Chimie', 'EPS']
 const SERIES = ['A4', 'C', 'D', 'G1', 'G2', 'G3', 'F1', 'F2', 'F3', 'F4', 'E', 'TI-1']
 const REGIONS = ['Maritime', 'Plateaux', 'Centrale', 'Kara', 'Savanes']
 const DOMAINES = ['Commerce', 'Informatique', 'Artisanat', 'Santé', 'Éducation', 'Autre']
@@ -21,6 +21,11 @@ const UNIVERS = [
   { id: 'droit', label: 'Droit', icon: Scale },
   { id: 'btp', label: 'BTP', icon: HardHat },
   { id: 'communication', label: 'Communication', icon: Radio },
+  { id: 'transport', label: 'Transport & Logistique', icon: Briefcase },
+  { id: 'mode', label: 'Mode & Stylisme', icon: Scissors },
+  { id: 'industrie', label: 'Industrie & Technique', icon: Cpu },
+  { id: 'enseignement', label: 'Enseignement & Formation', icon: Users },
+  { id: 'finance', label: 'Finance & Banque', icon: DollarSign },
 ]
 
 const STATEMENTS = [
@@ -285,7 +290,7 @@ export default function OnboardingPage() {
               <h2 style={titleStyle}>Tes matières préférées ?</h2>
               <p style={subtitleStyle}>Choisis jusqu'à 3</p>
               <div style={chipContainerStyle}>
-                {MATIERES.map(opt => {
+                {MATIERES_COLLEGE.map(opt => {
                   const selected = formData.matieres.includes(opt)
                   return (
                     <Chip 
