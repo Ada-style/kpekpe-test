@@ -9,10 +9,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+      })
+      .catch((error) => {
+        console.error("Erreur getSession:", error)
+      })
+      .finally(() => {
+        setLoading(false) // ✅ toujours appelé, même en cas d'erreur
+      })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -21,55 +27,57 @@ export function AuthProvider({ children }) {
         setUser(currentUser)
         setLoading(false)
 
-        // Auto-create profile for Google OAuth users (or any provider)
         if (currentUser && (_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED')) {
-          const { data: existingProfile } = await supabase
-            .from('user_profile')
-            .select('id')
-            .eq('id', currentUser.id)
-            .single()
+          try {
+            const { data: existingProfile } = await supabase
+              .from('user_profile')
+              .select('id')
+              .eq('id', currentUser.id) // ✅ corrigé
+              .single()
 
-          if (!existingProfile) {
-            const meta = currentUser.user_metadata || {}
-            const fullName = meta.full_name || meta.name || ''
-            const nameParts = fullName.trim().split(' ')
-            const nom = nameParts[0] || ''
-            const prenom = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nom
+            if (!existingProfile) {
+              const meta = currentUser.user_metadata || {}
+              const fullName = meta.full_name || meta.name || '' // ✅ corrigé
+              const nameParts = fullName.trim().split(' ')
+              const nom = nameParts[0] || ''
+              const prenom = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nom
 
-            let profileData = {
-              id: currentUser.id,
-              nom,
-              prenom,
-              onboarding_complete: false
-            }
-
-            // Récupérer les données d'onboarding si elles existent
-            const onboardingDataRaw = localStorage.getItem('kpekpe_onboarding_data')
-            if (onboardingDataRaw) {
-              try {
-                const ob = JSON.parse(onboardingDataRaw)
-                profileData = {
-                  ...profileData,
-                  niveau: ob.formData?.classe || ob.formData?.domaine || '',
-                  serie: ob.formData?.serie || null,
-                  region: ob.formData?.region || '',
-                  type_consultation: ob.typeConsultation || '',
-                  centres_interet: ob.formData?.univers ? [ob.formData.univers] : [],
-                  competences: ob.formData?.points_forts || [],
-                  score_passion: ob.scores?.passion || 0,
-                  score_talent: ob.scores?.talent || 0,
-                  score_besoins: ob.scores?.besoins || 0,
-                  score_aspiration: ob.scores?.aspiration || 0,
-                  personnalite: ob.personnalite || '',
-                  onboarding_complete: true
-                }
-                localStorage.removeItem('kpekpe_onboarding_data')
-              } catch(e) {
-                console.error("Erreur parsing onboarding data", e)
+              let profileData = {
+                id: currentUser.id, // ✅ corrigé
+                nom,
+                prenom,
+                onboarding_complete: false
               }
-            }
 
-            await supabase.from('user_profile').insert(profileData)
+              const onboardingDataRaw = localStorage.getItem('kpekpe_onboarding_data')
+              if (onboardingDataRaw) {
+                try {
+                  const ob = JSON.parse(onboardingDataRaw)
+                  profileData = {
+                    ...profileData,
+                    niveau: ob.formData?.classe || ob.formData?.domaine || '',
+                    serie: ob.formData?.serie || null,
+                    region: ob.formData?.region || '',
+                    type_consultation: ob.typeConsultation || '',
+                    centres_interet: ob.formData?.univers ? [ob.formData.univers] : [],
+                    competences: ob.formData?.points_forts || [],
+                    score_passion: ob.scores?.passion || 0,
+                    score_talent: ob.scores?.talent || 0,
+                    score_besoins: ob.scores?.besoins || 0,
+                    score_aspiration: ob.scores?.aspiration || 0,
+                    personnalite: ob.personnalite || '',
+                    onboarding_complete: true
+                  }
+                  localStorage.removeItem('kpekpe_onboarding_data')
+                } catch (e) {
+                  console.error("Erreur parsing onboarding data", e)
+                }
+              }
+
+              await supabase.from('user_profile').insert(profileData)
+            }
+          } catch (error) {
+            console.error("Erreur création profil:", error)
           }
         }
       }
