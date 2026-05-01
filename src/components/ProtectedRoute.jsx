@@ -5,7 +5,6 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth()
   const location = useLocation()
 
-  // Mode démo : bypasse l'auth si ?demo=true dans l'URL
   const searchParams = new URLSearchParams(location.search)
   const isDemo = searchParams.get('demo') === 'true'
 
